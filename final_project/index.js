@@ -12,6 +12,19 @@ app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUni
 
 app.use("/customer/auth/*", function auth(req,res,next){
 //Write the authenication mechanism here
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token required" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, "fingerprint_customer"); // same secret
+    req.user = decoded; // store decoded user info for later
+    next(); // proceed to actual route handler
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid or expired token" });
+  }
 });
  
 const PORT =5000;
